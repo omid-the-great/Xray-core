@@ -381,6 +381,7 @@ type Config struct {
 	FakeDNS          *FakeDNSConfig          `json:"fakeDns"`
 	Observatory      *ObservatoryConfig      `json:"observatory"`
 	BurstObservatory *BurstObservatoryConfig `json:"burstObservatory"`
+	Tun              *TunConfig              `json:"tun"`
 }
 
 func (c *Config) findInboundTag(tag string) int {
@@ -447,6 +448,10 @@ func (c *Config) Override(o *Config, fn string) {
 
 	if o.BurstObservatory != nil {
 		c.BurstObservatory = o.BurstObservatory
+	}
+
+	if o.Tun != nil {
+		c.Tun = o.Tun
 	}
 
 	// update the Inbound in slice if the only one in override config has same tag
@@ -583,6 +588,14 @@ func (c *Config) Build() (*core.Config, error) {
 
 	if c.BurstObservatory != nil {
 		r, err := c.BurstObservatory.Build()
+		if err != nil {
+			return nil, err
+		}
+		config.App = append(config.App, serial.ToTypedMessage(r))
+	}
+
+	if c.Tun != nil {
+		r, err := c.Tun.Build()
 		if err != nil {
 			return nil, err
 		}
